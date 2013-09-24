@@ -1,4 +1,11 @@
 *.log
 *.pot
-*.pyc
-local_settings.py
+*.py[co]
+*.egg*
+*.swp
+*~
+*.db
+*.project
+*.prefs
+*.pydevproject
+.idea
