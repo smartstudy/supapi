@@ -16,7 +16,7 @@ def _list_results(url, auth):
                 if next_url:
                     get_results(next_url, results)
             else:
-                results = data
+                results += data
 
     get_results(url, results)
     return results
