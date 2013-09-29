@@ -25,7 +25,7 @@ def readme():
 
 setup(
     name='SSAPI-Supapi',
-    version='0.0.1',
+    version='0.0.2',
     author='PerhapsSPY',
     author_email='py+d9@smartstudy.co.kr',
     maintainer='DevOps Team, SMARTSTUDY',
