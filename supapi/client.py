@@ -41,7 +41,7 @@ def list_from_url(api_url, params=None, auth=None, one_page=False, ):
     if params:
         params = urlencode(params.items())
         url = '{}?{}'.format(api_url, params)
-    if not one_page:
+    if one_page:
         return _list_results(url, auth)
     req = requests.get(url, verify=False, auth=auth)
     if req.status_code == requests.codes.ok:
