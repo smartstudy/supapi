@@ -73,6 +73,6 @@ class FilterMixin(object):
             for item in self.filter_keys:
                 iq = Q()
                 for query in queries:
-                    iq = iq | Q(**{'{}__iexact'.format(item): query})
+                    iq = iq | Q(**{'{}__exact'.format(item): query})
                 q = q | iq
         return queryset.filter(q).distinct()
