@@ -66,14 +66,16 @@ class FilterMixin(object):
     def get_queryset(self):
         queryset = super(FilterMixin, self).get_queryset()
         q = Q()
-        query_string = self.request.GET.get('filter', None)
 
-        if query_string:
+        for fk in self.filter_keys:
+            query_string = self.request.GET.get(fk, None)
+            if not query_string:
+                continue
+
             queries = query_string.split(' ')
-            for item in self.filter_keys:
-                iq = Q()
-                for query in queries:
-                    iq = iq and Q(**{'{}__contains'.format(item): query})
-                q = q and iq
+            iq = Q()
+            for query in queries:
+                iq = iq | Q(**{'{}__contains'.format(fk): query})
+            q = q & iq
 
         return queryset.filter(q).distinct()
