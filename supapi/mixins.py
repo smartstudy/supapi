@@ -64,7 +64,7 @@ class FilterMixin(object):
     filter_keys = []
 
     def get_queryset(self):
-        queryset = super(FilteringMixin, self).get_queryset()
+        queryset = super(FilterMixin, self).get_queryset()
         q = Q()
         query_string = self.request.GET.get('filter', None)
 
