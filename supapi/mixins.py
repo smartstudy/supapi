@@ -58,3 +58,21 @@ class OrderMixin(object):
         elif self.order_keys:
             queryset = queryset.order_by(self.order_keys[0])
         return queryset
+
+
+class FilterMixin(object):
+    filter_keys = []
+
+    def get_queryset(self):
+        queryset = super(FilteringMixin, self).get_queryset()
+        q = Q()
+        query_string = self.request.GET.get('filter', None)
+
+        if query_string:
+            queries = query_string.split(' ')
+            for item in self.filter_keys:
+                iq = Q()
+                for query in queries:
+                    iq = iq | Q(**{'{}__iexact'.format(item): query})
+                q = q | iq
+        return queryset.filter(q).distinct()
