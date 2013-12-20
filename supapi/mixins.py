@@ -16,7 +16,20 @@ class DelimitedIdListMixin(object):
         return queryset.filter(q)
 
 
-class SearchMixin(object):
+class QueryStringMixin(object):
+    def query_string(self):
+        query_dict = self.request.GET.copy()
+        if 'page' in query_dict:
+            del query_dict['page']
+        return '&{}'.format(query_dict.urlencode()) if query_dict.urlencode() else ''
+
+    def get_context_data(self, **kwargs):
+        context = super(QueryStringMixin, self).get_context_data(**kwargs)
+        context['query_string'] = self.query_string()
+        return context
+
+
+class SearchMixin(QueryStringMixin):
     search_keys = []
     search_form = None
 
@@ -33,17 +46,10 @@ class SearchMixin(object):
                 q = q | iq
         return queryset.filter(q).distinct()
 
-    def query_string(self):
-        query_dict = self.request.GET.copy()
-        if 'page' in query_dict:
-            del query_dict['page']
-        return '&{}'.format(query_dict.urlencode()) if query_dict.urlencode() else ''
-
     def get_context_data(self, **kwargs):
         context = super(SearchMixin, self).get_context_data(**kwargs)
         if self.search_form:
             context['search_form'] = self.search_form(self.request.GET)
-            context['query_string'] = self.query_string()
         return context
 
 
