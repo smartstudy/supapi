@@ -17,6 +17,6 @@ class BasicItemModel(TimeStampedModel):
     name = models.CharField(
         u'이름', max_length=255, blank=True, default='')
     uid = models.CharField(
-        u'UID', max_length=255, unique=True, )
+        u'UID', max_length=160, unique=True, )
     description = models.CharField(
         u'설명', max_length=255, blank=True, default='')

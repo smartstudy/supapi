@@ -64,3 +64,24 @@ class OrderMixin(object):
         elif self.order_keys:
             queryset = queryset.order_by(self.order_keys[0])
         return queryset
+
+
+class FilterMixin(object):
+    filter_keys = []
+
+    def get_queryset(self):
+        queryset = super(FilterMixin, self).get_queryset()
+        q = Q()
+
+        for fk in self.filter_keys:
+            query_string = self.request.GET.get(fk, None)
+            if not query_string:
+                continue
+
+            queries = query_string.split(' ')
+            iq = Q()
+            for query in queries:
+                iq = iq | Q(**{'{}__contains'.format(fk): query})
+            q = q & iq
+
+        return queryset.filter(q).distinct()
