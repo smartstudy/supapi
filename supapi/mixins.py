@@ -38,12 +38,24 @@ class SearchMixin(QueryStringMixin):
         q = Q()
         query_string = self.request.GET.get('query', None)
         if query_string:
-            queries = query_string.split(' ')
-            for item in self.search_keys:
-                iq = Q()
+            if '+' in query_string:
+                queries = query_string.split('+')
                 for query in queries:
-                    iq = iq | Q(**{'{}__contains'.format(item): query})
-                q = q | iq
+                    iq = Q()
+                    for item in self.search_keys:
+                        wq = Q()
+                        words = query.split(' ')
+                        for word in words:
+                            wq = wq & Q(**{'{}__contains'.format(item): word})
+                        iq = iq | wq
+                    q = q & iq
+            else:
+                queries = query_string.split(' ')
+                for item in self.search_keys:
+                    iq = Q()
+                    for query in queries:
+                        iq = iq & Q(**{'{}__contains'.format(item): query})
+                    q = q | iq
         return queryset.filter(q).distinct()
 
     def get_context_data(self, **kwargs):
