@@ -36,27 +36,20 @@ class SearchMixin(QueryStringMixin):
     def get_queryset(self):
         queryset = super(SearchMixin, self).get_queryset()
         q = Q()
-        query_string = self.request.GET.get('query', None)
+        query_string = self.request.GET.get('query')
         if query_string:
-            if '+' in query_string:
-                queries = query_string.split('+')
-                for query in queries:
-                    iq = Q()
-                    for item in self.search_keys:
-                        wq = Q()
-                        words = query.split(' ')
-                        for word in words:
-                            wq = wq & Q(**{'{}__contains'.format(item): word})
-                        iq = iq | wq
-                    q = q & iq
-            else:
-                queries = query_string.split(' ')
+            queries = query_string.split('+')
+            for query in queries:
+                iq = Q()
                 for item in self.search_keys:
-                    iq = Q()
-                    for query in queries:
-                        iq = iq & Q(**{'{}__contains'.format(item): query})
-                    q = q | iq
-        return queryset.filter(q).distinct()
+                    wq = Q()
+                    words = query.split(' ')
+                    for word in words:
+                        wq = wq & Q(**{'{}__contains'.format(item): word})
+                    iq = iq | wq
+                q = q & iq
+            queryset = queryset.filter(q).distinct()
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super(SearchMixin, self).get_context_data(**kwargs)
