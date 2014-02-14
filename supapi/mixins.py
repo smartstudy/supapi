@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.db.models import Q
+from django.core.exceptions import ValidationError
+from django.db.models import Q, FieldDoesNotExist
+from django.utils.dateparse import parse_date
 
 
 class DelimitedIdListMixin(object):
@@ -29,6 +31,13 @@ class QueryStringMixin(object):
         return context
 
 
+def is_datefield(model, field):
+    try:
+        return model._meta.get_field(field).get_internal_type() == 'DateField'
+    except FieldDoesNotExist:
+        return False
+
+
 class SearchMixin(QueryStringMixin):
     search_keys = []
     search_form = None
@@ -45,7 +54,11 @@ class SearchMixin(QueryStringMixin):
                     wq = Q()
                     words = query.split(' ')
                     for word in words:
-                        wq = wq & Q(**{'{}__contains'.format(item): word})
+                        if is_datefield(self.model, item):
+                            if parse_date(query):
+                                wq = Q(**{'{}'.format(item): query})
+                        else:
+                            wq = wq & Q(**{'{}__contains'.format(item): word})
                     iq = iq | wq
                 q = q & iq
             queryset = queryset.filter(q).distinct()
@@ -79,14 +92,18 @@ class FilterMixin(object):
         q = Q()
 
         for fk in self.filter_keys:
-            query_string = self.request.GET.get(fk, None)
-            if not query_string:
+            query = self.request.GET.get(fk)
+            if not query:
                 continue
-
-            queries = query_string.split(' ')
             iq = Q()
-            for query in queries:
-                iq = iq | Q(**{'{}__contains'.format(fk): query})
+            if query == '_blank':
+                iq = iq | Q(**{'{}'.format(fk): ''})
+            else:
+                iq = iq | Q(**{'{}'.format(fk): query})
             q = q & iq
+            try:
+                queryset = queryset.filter(q).distinct()
+            except (ValueError, ValidationError):
+                pass
 
-        return queryset.filter(q).distinct()
+        return queryset
