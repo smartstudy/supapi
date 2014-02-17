@@ -58,7 +58,7 @@ class SearchMixin(QueryStringMixin):
                             if parse_date(query):
                                 wq = Q(**{'{}'.format(item): query})
                         else:
-                            wq = wq & Q(**{'{}__contains'.format(item): word})
+                            wq = wq & Q(**{'{}__icontains'.format(item): word})
                     iq = iq | wq
                 q = q & iq
             queryset = queryset.filter(q).distinct()
@@ -84,26 +84,37 @@ class OrderMixin(object):
         return queryset
 
 
+def _query(query):
+    query_rule = {
+        '_blank': '',
+        '_false': False,
+        '_true': True,
+    }
+    if query in query_rule:
+        query = query_rule[query]
+    return query
+
+
 class FilterMixin(object):
     filter_keys = []
 
     def get_queryset(self):
         queryset = super(FilterMixin, self).get_queryset()
         q = Q()
-
         for fk in self.filter_keys:
-            query = self.request.GET.get(fk)
-            if not query:
+            fq = Q()
+            query_string = self.request.GET.get(fk)
+            if not query_string:
                 continue
-            iq = Q()
-            if query == '_blank':
-                iq = iq | Q(**{'{}'.format(fk): ''})
-            else:
-                iq = iq | Q(**{'{}'.format(fk): query})
-            q = q & iq
-            try:
-                queryset = queryset.filter(q).distinct()
-            except (ValueError, ValidationError):
-                pass
+            queries = query_string.split(',')
+            for query in queries:
+                iq = Q()
+                iq = iq | Q(**{'{}'.format(fk): _query(query)})
+                fq = fq | iq
+            q = fq & fq
+        try:
+            queryset = queryset.filter(q).distinct()
+        except (ValueError, ValidationError):
+            pass
 
         return queryset
