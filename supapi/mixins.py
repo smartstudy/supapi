@@ -111,7 +111,7 @@ class FilterMixin(object):
                 iq = Q()
                 iq = iq | Q(**{'{}'.format(fk): _query(query)})
                 fq = fq | iq
-            q = fq & fq
+            q = q & fq
         try:
             queryset = queryset.filter(q).distinct()
         except (ValueError, ValidationError):
