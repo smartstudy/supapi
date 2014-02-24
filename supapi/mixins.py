@@ -118,3 +118,20 @@ class FilterMixin(object):
             pass
 
         return queryset
+
+
+class AjaxChangeTemplateMixin(object):
+    ajax_template_name = None
+    ajax_paginate_by = None
+
+    def get_template_names(self):
+        name = super(AjaxChangeTemplateMixin, self).get_template_names()
+        if self.request.is_ajax() and self.ajax_template_name:
+            name = self.ajax_template_name
+        return name
+
+    def get_paginate_by(self, queryset):
+        page = super(AjaxChangeTemplateMixin, self).get_paginate_by(queryset)
+        if self.request.is_ajax() and self.ajax_paginate_by:
+            page = self.ajax_paginate_by
+        return page
